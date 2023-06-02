@@ -8,6 +8,8 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 import java.awt.*;
 import java.io.File;
@@ -113,8 +115,8 @@ public class HistogramTools {
     //Histogramme d'une image
     public static double[][] ImageHisto (Image ImageRead, boolean show) throws IOException {
 
-        double[][] histo = new double[3][256];
-
+        double[][] histo = new double[ImageRead.getBDim()][256];
+        System.out.println(ImageRead.getBDim());
         for(int c=0; c < ImageRead.getBDim(); c++)
         {
             Arrays.fill(histo[c], 0);
@@ -190,9 +192,31 @@ public class HistogramTools {
                 HistogramTools.plotHistogram(histoPourc[c]);
             }
         }
-
         return histoPourc;
-
     }
 
+
+
+
+    //soucisss
+   public static double[][] getHisto(JSONArray json){
+       System.out.println(json);
+       double[][] histo = new double[json.size()][];
+       int index = 0;
+       for (Object tab :json) {
+           String[] histoString = tab.toString().replace("[","").replace("]","").split(",");
+           //System.out.println(tab.toString().split(","));
+           histo = new double[json.size()][histoString.length];
+           for(int i =0;i<histoString.length;i++){
+               histo[index][i]=Double.parseDouble(histoString[i]);
+           }
+       }
+       for(int i =0;i<histo.length;i++){
+           for(int j =0;j<histo[i].length;j++){
+               System.out.print(histo[i][j]);
+           }
+           System.out.println();
+       }
+       return histo;
+    }
 }
