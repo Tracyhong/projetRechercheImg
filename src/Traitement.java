@@ -6,6 +6,12 @@ import java.io.IOException;
 import java.util.Arrays;
 
 public class Traitement {
+	/**
+	 * Créer l'histogramme d'une image après traitement (filtre médian, discrétisation, normalisation )
+	 * @param ImageRead
+	 * @return
+	 * @throws IOException
+	 */
     public static double[][] traitementHisto(Image ImageRead) throws IOException {
 
         Image ImageMedian = medianFilter(ImageRead,false);
@@ -30,40 +36,32 @@ public class Traitement {
 		
 		Image ImageCustom = ImageRead;
 		
-		for(int x=0; x < ImageRead.getXDim(); x++)
-		{
-			for(int y=0; y < ImageRead.getYDim(); y++)
-			{
+		for(int x=0; x < ImageRead.getXDim(); x++){
+			for(int y=0; y < ImageRead.getYDim(); y++){
 				int[][][] pixelsVoisins = getPixelsVoisins(ImageRead, x, y);
 				int[][] hasValueFilter = hasValueVoisins(ImageRead, x, y);	
 				
 				int [][] TrierPixelsVoisins = new int[ImageRead.getBDim()][pixelsVoisins[0].length * pixelsVoisins[0][0].length];
 				int NbVoisins = 0;
 				
-				for(int c=0; c < ImageRead.getBDim(); c++)
-				{
+				for(int c=0; c < ImageRead.getBDim(); c++){
 					int index = 0;
-					for(int pvX=0; pvX < pixelsVoisins[0].length; pvX++)
-					{
-						for(int pvY=0; pvY < pixelsVoisins[0][0].length; pvY++)
-						{
+					for(int pvX=0; pvX < pixelsVoisins[0].length; pvX++){
+						for(int pvY=0; pvY < pixelsVoisins[0][0].length; pvY++){
 							TrierPixelsVoisins[c][index] =  pixelsVoisins[c][pvX][pvY];
 							index++;
 						}
 					}
 				}
 				
-				for(int pvX=0; pvX < hasValueFilter.length; pvX++)
-				{
-					for(int pvY=0; pvY < hasValueFilter[0].length; pvY++)
-					{
+				for(int pvX=0; pvX < hasValueFilter.length; pvX++){
+					for(int pvY=0; pvY < hasValueFilter[0].length; pvY++){
 						NbVoisins++;
 					}
 				}
 				
 				//Trier les valeurs par ordre croissant
-				for(int c=0; c < ImageRead.getBDim(); c++)
-				{
+				for(int c=0; c < ImageRead.getBDim(); c++){
 					Arrays.sort(TrierPixelsVoisins[c]);
 					
 					int medianValue = TrierPixelsVoisins[c][ (int) (NbVoisins/2)];
@@ -73,40 +71,38 @@ public class Traitement {
 			}
 		}
 		
-		if(show)
-		{
+		if(show){
 			Viewer2D.exec(ImageCustom);
 		}
-		
 		return ImageCustom;
 	}
-	
+
+	/**
+	 * récupère tous les pixels voisins d'un pixel d'une image
+	 * @param ImageRead
+	 * @param x
+	 * @param y
+	 * @return un tableau à 3 entrées pour chaque canaux
+	 */
 	private static int[][][] getPixelsVoisins(Image ImageRead, int x, int y) {
 		
 		int[][][] pixelsVoisins = new int[ImageRead.getBDim()][3][3];
 	
 		//Parcourir les voisins
-		for(int voisinX = -1; voisinX <= 1; voisinX++)
-		{
-			for(int voisinY = -1; voisinY <= 1; voisinY++)
-			{
+		for(int voisinX = -1; voisinX <= 1; voisinX++){
+			for(int voisinY = -1; voisinY <= 1; voisinY++){
 				int currentX = x + voisinX;
 				int currentY = y + voisinY;
 	
-				for(int c=0; c < ImageRead.getBDim(); c++)
-				{
+				for(int c=0; c < ImageRead.getBDim(); c++){
 					pixelsVoisins[c][voisinX+1][voisinY+1] = 255;
 	
-					if (currentX >= 0 && currentX < ImageRead.getXDim()-1 && currentY >= 0 && currentY < ImageRead.getYDim()-1)
-					{
+					if (currentX >= 0 && currentX < ImageRead.getXDim()-1 && currentY >= 0 && currentY < ImageRead.getYDim()-1){
 						pixelsVoisins[c][voisinX+1][voisinY+1] = ImageRead.getPixelXYBByte(currentX, currentY, c);
-	
 					}
 				}
-				
 			}
 		}
-		
 		return pixelsVoisins;
 		
 	}
@@ -135,7 +131,14 @@ public class Traitement {
 		
 		return hasValueVoisins;
 	}
-	
+
+	/**
+	 * Compare deux histogramme
+	 * @param histoSource
+	 * @param histoAComparer
+	 * @param show
+	 * @return une valeur de similarité (petit = très similaire, grand = moins similaire)
+	 */
 	public static double similarite( double[][] histoSource, double[][] histoAComparer, boolean show) {
 		
 		double distance = 0.0;

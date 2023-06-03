@@ -18,8 +18,12 @@ import java.util.Arrays;
 
 public class HistogramTools {
 
+    /**
+     * Afficher dans une frame l'histogramme
+     * @param histogram
+     * @throws IOException
+     */
     public static void plotHistogram(double [] histogram) throws IOException{
-
         XYSeries myseries = new XYSeries("Nombre de pixels");
         for(int i=0;i<histogram.length;i++){
             myseries.add(new Double(i), new Double(histogram[i]));
@@ -43,6 +47,12 @@ public class HistogramTools {
         frame.setVisible(true);
     }
 
+    /**
+     * Sauvegarde l'histogramme en image
+     * @param histogram
+     * @param pathToSave
+     * @throws IOException
+     */
     public static void saveHistogram(double [] histogram, String pathToSave) throws IOException{
 
         XYSeries myseries = new XYSeries("Nombre de pixels");
@@ -65,130 +75,84 @@ public class HistogramTools {
         if(pathToSave!=null)
             ChartUtilities.saveChartAsPNG(new File(pathToSave), jfreechart, 900, 600);
     }
-    /**
-     * Calcule l'histo d'une image en niveau de gris 
-     * @param img l'image
-     * @return histo
-     */
-    public static double[] createHisto(Image img) throws IOException {
-        double[] histo = new double[256];
-        for(int i = 0;i<256;i++){
-            histo[i] = 0;
-        }
-        for (int x = 0; x < img.getXDim(); x++) {
-            for (int y = 0; y < img.getYDim(); y++) {
-                histo[img.getPixelXYBByte(x,y,0)] +=1;
-                //System.out.println(img.getPixelXYBByte(x,y,0));
-            }
-        }
-        //plotHistogram(histo);
-        return histo;
-    }
 
     /**
-     * Calcule l'histo RGB d'une image
-     * @param img l'image
-     * @return histoRGB
+     * Créer l'histogramme d'une image
+     * @param ImageRead
+     * @param show
+     * @return
+     * @throws IOException
      */
-    public static double[][] creerHistoRGB(Image img){
-        int largeur = img.getXDim();
-        int hauteur = img.getYDim();
-        double[][] histo = new double[3][256];
-
-        // init histo à 0
-        /*for(int i = 0; i < 3; ++i){
-            for(int j = 0; j < histo[0].length; ++j)
-                histo[i][j] = 0;
-        }*/
-
-        for(int i = 0; i < 3; ++i) {  //canaux
-            for (int x = 0; x < largeur; x++) {
-                for (int y = 0; y < hauteur; y++) {
-                    int val = img.getPixelXYBByte(x, y, i);
-                    histo[i][val] += 1;
-                }
-            }
-        }
-        return histo;
-    }
-
-    //Histogramme d'une image
     public static double[][] ImageHisto (Image ImageRead, boolean show) throws IOException {
 
         double[][] histo = new double[ImageRead.getBDim()][256];
         //System.out.println(ImageRead.getBDim());
-        for(int c=0; c < ImageRead.getBDim(); c++)
-        {
+        for(int c=0; c < ImageRead.getBDim(); c++){
             Arrays.fill(histo[c], 0);
         }
 
-        for(int x=0; x<ImageRead.getXDim();x++)
-        {
-            for(int y=0; y<ImageRead.getYDim();y++)
-            {
-                for(int c=0; c < ImageRead.getBDim(); c++)
-                {
+        for(int x=0; x<ImageRead.getXDim();x++){
+            for(int y=0; y<ImageRead.getYDim();y++){
+                for(int c=0; c < ImageRead.getBDim(); c++){
                     histo[c][ImageRead.getPixelXYBByte(x, y, c)]++;
                 }
             }
         }
 
         if(show) {
-            for(int c=0; c < ImageRead.getBDim(); c++)
-            {
+            for(int c=0; c < ImageRead.getBDim(); c++){
                 HistogramTools.plotHistogram(histo[c]);
             }
         }
-
         return histo;
-
     }
 
-
+    /**
+     * Discrétise l'histogramme
+     * @param histo
+     * @param division
+     * @param show
+     * @return
+     * @throws IOException
+     */
     public static double[][] ReduceHisto (double[][] histo, int division, boolean show) throws IOException {
-
         int newLength = (int) (histo[0].length / division);
-
         double[][] histoReduit = new double[histo.length][newLength];
-
-        for(int c=0; c < histoReduit.length; c++)
-        {
-            for(int x=0; x < histoReduit[c].length; x++)
-            {
-                for(int y=x*division; y < (x*division) + division; y++)
-                {
+        for(int c=0; c < histoReduit.length; c++){
+            for(int x=0; x < histoReduit[c].length; x++){
+                for(int y=x*division; y < (x*division) + division; y++){
                     histoReduit[c][x] = histoReduit[c][x] + histo[c][y] ;
                 }
             }
         }
 
         if(show) {
-            for(int c=0; c < histoReduit.length; c++)
-            {
+            for(int c=0; c < histoReduit.length; c++){
                 HistogramTools.plotHistogram(histoReduit[c]);
             }
         }
-
         return histoReduit;
-
     }
 
+    /**
+     * Convertis un histogramme en histogramme de valeur en pourcentage
+     * @param histo
+     * @param show
+     * @return histogramm de pourcentage
+     * @throws IOException
+     */
     public static double[][] PourcentageHisto (double[][] histo, boolean show) throws IOException {
 
         double[][] histoPourc = new double[histo.length][histo[0].length];
         int nbPixels = (int) Arrays.stream(histo[0]).sum();
-
-        for(int c=0; c < histoPourc.length; c++)
-        {
-            for(int x=0; x < histoPourc[c].length; x++)
-            {
+        for(int c=0; c < histoPourc.length; c++){
+            for(int x=0; x < histoPourc[c].length; x++){
                 histoPourc[c][x] = histo[c][x] / nbPixels;
             }
         }
 
         if(show) {
-            for(int c=0; c < histoPourc.length; c++)
-            {
+            for(int c=0; c < histoPourc.length; c++){
                 HistogramTools.plotHistogram(histoPourc[c]);
             }
         }
@@ -196,8 +160,11 @@ public class HistogramTools {
     }
 
 
-
-
+    /**
+     * Convertis un jsonArray contenant un String en histogramme
+     * @param json
+     * @return un histogramme
+     */
    public static double[][] getHistoJson(JSONArray json){
        //System.out.println(json);
        double[][] histo = new double[json.size()][];

@@ -16,27 +16,6 @@ import java.util.*;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        //System.out.println("Test bruitage et débruitage avec filtre median");
-        //Charger une image en memoire
-        /*Image test= ImageLoader.exec("src\\img\\eiffel.jpg");
-        Viewer2D.exec(test);*/
-        //bruiter une image
-        /*Image noisyImage=NoiseTools.addNoise(test,0.2);
-        noisyImage.setColor(true); //si false => affichage de chaque canal, si true => affichage d'une image couleur
-        Viewer2D.exec(noisyImage);*/
-
-        //application du filtre median pour debruiter
-        /*Image imgFiltree = Traitement.filtreMedian(noisyImage);
-        imgFiltree.setColor(true); //si false => affichage de chaque canal, si true => affichage d'une image couleur
-        Viewer2D.exec(imgFiltree);*/
-
-        /*
-        //creer les histo des 3 couleurs
-        double[][] histo = HistogramTools.creerHistoRGB(test);
-        HistogramTools.plotHistogram(histo[0],"red");
-        HistogramTools.plotHistogram(histo[1],"green");
-        HistogramTools.plotHistogram(histo[2],"blue");*/
-
         //scanner to read the theme of images(broad or motos)
         Scanner myObj = new Scanner(System.in);  // Create a Scanner object
         String theme;
@@ -91,11 +70,11 @@ public class Main {
                     double similarity = Traitement.similarite(histoSource,histo,false);
                     //stock the name and similarities in the map or tab
                     map.put(similarity,name);
-                    for (Map.Entry<Double, String> entry : map.entrySet()) {
+                    //afficher toutes les similarités des images dans la treemap dans l'ordre croissant
+                    /*for (Map.Entry<Double, String> entry : map.entrySet()) {
                         System.out.println(entry.getKey() + " => " + entry.getValue());
-                    }
+                    }*/
                 }
-
             }
             //display the 10 first
         System.out.println("BEST 10 :");
@@ -108,15 +87,6 @@ public class Main {
             }
             max++;
         }
-
-        //System.out.println(obj.toJSONString());
-        /*writeJson("src/index.json",obj);
-        JSONObject jsonObject = (JSONObject) readJson("src/index.json");
-        System.out.println("aaa");
-        System.out.println(jsonObject);
-        System.out.println(jsonObject.get("images"));
-        JSONArray jsonArray = (JSONArray) jsonObject.get("images");*/
-
     }
     public static void indexation(String path) throws Exception {
         System.out.println("Chargement en cours ...");
