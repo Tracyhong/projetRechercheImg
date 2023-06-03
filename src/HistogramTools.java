@@ -116,7 +116,7 @@ public class HistogramTools {
     public static double[][] ImageHisto (Image ImageRead, boolean show) throws IOException {
 
         double[][] histo = new double[ImageRead.getBDim()][256];
-        System.out.println(ImageRead.getBDim());
+        //System.out.println(ImageRead.getBDim());
         for(int c=0; c < ImageRead.getBDim(); c++)
         {
             Arrays.fill(histo[c], 0);
@@ -198,25 +198,29 @@ public class HistogramTools {
 
 
 
-    //soucisss
-   public static double[][] getHisto(JSONArray json){
-       System.out.println(json);
+   public static double[][] getHistoJson(JSONArray json){
+       //System.out.println(json);
        double[][] histo = new double[json.size()][];
        int index = 0;
        for (Object tab :json) {
+           //System.out.println(tab.toString());
            String[] histoString = tab.toString().replace("[","").replace("]","").split(",");
            //System.out.println(tab.toString().split(","));
-           histo = new double[json.size()][histoString.length];
+           //histo = new double[json.size()][histoString.length];
+           double[] histoColor = new double[histoString.length];
            for(int i =0;i<histoString.length;i++){
-               histo[index][i]=Double.parseDouble(histoString[i]);
+               histoColor[i]=Double.parseDouble(histoString[i]);
            }
+           histo[index] = histoColor;
+           index++;
        }
-       for(int i =0;i<histo.length;i++){
+       //affichage
+       /*for(int i =0;i<histo.length;i++){
            for(int j =0;j<histo[i].length;j++){
                System.out.print(histo[i][j]);
            }
            System.out.println();
-       }
+       }*/
        return histo;
     }
 }

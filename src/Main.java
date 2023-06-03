@@ -1,23 +1,18 @@
-import com.google.gson.JsonObject;
 import fr.unistra.pelican.Image;
 import fr.unistra.pelican.algorithms.io.ImageLoader;
-import fr.unistra.pelican.algorithms.visualisation.Viewer2D;
 
+import fr.unistra.pelican.algorithms.visualisation.Viewer2D;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -50,13 +45,21 @@ public class Main {
             theme = myObj.nextLine();  // Read user input
             System.out.println("Theme : " + theme);  // Output user input
         }while(!(theme.equals("motos") || theme.equals("broad")|| theme.equals("img")));
-        String imgName = myObj.nextLine();  // Read user input
-        System.out.println("Image : " + imgName);  // Output user input
         String path = "src\\"+theme;
+
+        //indexation
+        long tempsDebut = System.currentTimeMillis();
         indexation(path);
+        long tempsFin = System.currentTimeMillis();
+        double seconds = (tempsFin - tempsDebut) / 1000F;
+        System.out.println("Indexation effectuée en: "+ Double.toString(seconds) + " secondes.");
+
         File imgFileScan;
+        String imgName;
         do{
             System.out.println("Entrer un nom d'image");
+             imgName = myObj.nextLine();  // Read user input
+            System.out.println("Image : " + imgName);  // Output user input
             imgFileScan = new File(path+"\\"+imgName);
         }while(!imgFileScan.exists());
 
@@ -64,36 +67,51 @@ public class Main {
         File dir  = new File(path);
         File[] liste = dir.listFiles();
 
-        //create JSON
-
-            Image imgScan= ImageLoader.exec(path+"\\"+imgName);
-            double[][] histoSource = Traitement.TraitementHisto(imgScan);
+            Image imgSource= ImageLoader.exec(path+"\\"+imgName);
+            double[][] histoSource = Traitement.traitementHisto(imgSource);
             JSONObject jsonObject = (JSONObject) readJson("src/index.json");
             JSONArray jsonArray = (JSONArray) jsonObject.get("images");
 
             //create a map or tab to stock the similarities
+            Map<Double,String> map= new TreeMap<>();
 
             for(int i = 0;i<jsonArray.size();i++){
                 JSONObject obj = (JSONObject) jsonArray.get(i);
-                if(!obj.get("name").equals(imgName)){
+                String name = (String) obj.get("name");
+                if(!name.equals(imgName)){
 
-                    //not working
                     JSONArray jsonHisto = (JSONArray) obj.get("histo");
-                    HistogramTools.plotHistogram(HistogramTools.getHisto(jsonHisto)[0]);
-                    HistogramTools.plotHistogram(HistogramTools.getHisto(jsonHisto)[1]);
-                    HistogramTools.plotHistogram(HistogramTools.getHisto(jsonHisto)[2]);
+                    double[][] histo = HistogramTools.getHistoJson(jsonHisto);
+                    //HistogramTools.plotHistogram(HistogramTools.getHistoJson(jsonHisto)[0]); //R
+                    //HistogramTools.plotHistogram(HistogramTools.getHistoJson(jsonHisto)[1]); //G
+                    //HistogramTools.plotHistogram(HistogramTools.getHistoJson(jsonHisto)[2]); //B
 
                     //use the func similarity or cos between the img source and this one
+                    //System.out.println(name);
+                    double similarity = Traitement.similarite(histoSource,histo,false);
                     //stock the name and similarities in the map or tab
-
+                    map.put(similarity,name);
+                    for (Map.Entry<Double, String> entry : map.entrySet()) {
+                        System.out.println(entry.getKey() + " => " + entry.getValue());
+                    }
                 }
 
             }
             //display the 10 first
+        System.out.println("BEST 10 :");
+            int max = 0;
+        for (Map.Entry<Double, String> entry : map.entrySet()) {
+            if(max<10) {
+                System.out.println(entry.getKey() + " => " + entry.getValue());
+                Image test= ImageLoader.exec(path+"\\"+entry.getValue());
+                Viewer2D.exec(test);
+            }
+            max++;
+        }
 
         //System.out.println(obj.toJSONString());
-        /*writeJson("src/test.json",obj);
-        JSONObject jsonObject = (JSONObject) readJson("src/test.json");
+        /*writeJson("src/index.json",obj);
+        JSONObject jsonObject = (JSONObject) readJson("src/index.json");
         System.out.println("aaa");
         System.out.println(jsonObject);
         System.out.println(jsonObject.get("images"));
@@ -101,15 +119,18 @@ public class Main {
 
     }
     public static void indexation(String path) throws Exception {
+        System.out.println("Chargement en cours ...");
         File dir  = new File(path);
         File[] liste = dir.listFiles();
         //create JSON
         JSONObject obj = new JSONObject();
         JSONArray arrayImg = new JSONArray();
-
+        int nbImg = liste.length;
+        int index = 1;
         for(File item : liste){
+            System.out.println(index+"/"+nbImg);
             if(item.isFile()){
-                System.out.format("Nom du fichier: %s%n", item.getName());
+                //System.out.format("Nom du fichier: %s%n", item.getName());
                 Image img= ImageLoader.exec(path+"\\"+item.getName());
 //                    Viewer2D.exec(test);
 
@@ -117,7 +138,7 @@ public class Main {
                 objImg.put("name", item.getName());
                 JSONArray arrayHisto = new JSONArray();
 
-                double[][] histo = Traitement.TraitementHisto(img);
+                double[][] histo = Traitement.traitementHisto(img);
                 //List<String> histoList = new ArrayList<>();
                 for(int i = 0;i<histo.length;i++){
                     List<String> list = new ArrayList<>();
@@ -130,10 +151,13 @@ public class Main {
                 objImg.put("histo",arrayHisto);
                 arrayImg.add(objImg);
             }
+            index++;
+
         }
 
         obj.put("images",arrayImg);
         writeJson("src/index.json",obj);
+        System.out.println("Fin du chargement !");
     }
 
     public static Object readJson(String filename) throws IOException, ParseException {

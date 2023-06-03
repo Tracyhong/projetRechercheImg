@@ -1,16 +1,14 @@
-import fr.unistra.pelican.ByteImage;
 import fr.unistra.pelican.Image;
+import fr.unistra.pelican.algorithms.io.ImageLoader;
 import fr.unistra.pelican.algorithms.visualisation.Viewer2D;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 
 public class Traitement {
-    public static double[][] TraitementHisto(Image ImageRead) throws IOException {
+    public static double[][] traitementHisto(Image ImageRead) throws IOException {
 
-        Image ImageMedian = MedianFilter(ImageRead,false);
+        Image ImageMedian = medianFilter(ImageRead,false);
 
         double[][] histo, histo2, histo3;
 
@@ -28,7 +26,7 @@ public class Traitement {
      * @param ImageRead
      * @return l'image débruitée
      */
-    public static Image MedianFilter(Image ImageRead, boolean show) {
+    public static Image medianFilter(Image ImageRead, boolean show) {
 		
 		Image ImageCustom = ImageRead;
 		
@@ -138,7 +136,7 @@ public class Traitement {
 		return hasValueVoisins;
 	}
 	
-	public static double Similarite( double[][] histoSource, double[][] histoAComparer, boolean show) {
+	public static double similarite( double[][] histoSource, double[][] histoAComparer, boolean show) {
 		
 		double distance = 0.0;
 		
@@ -184,4 +182,15 @@ public class Traitement {
         
         return distance;
     }
+
+	//test func
+	public static void main(String[] args) throws IOException {
+
+        Image test= ImageLoader.exec("src\\motos\\000.jpg");
+        Image test1= ImageLoader.exec("src\\motos\\243.jpg");
+		double[][] histoTest = traitementHisto(test);
+		double[][] histoTest1 = traitementHisto(test1);
+		similarite(histoTest,histoTest,true); //1.0
+		similarite(histoTest,histoTest1,true); //0.9
+	}
 }
