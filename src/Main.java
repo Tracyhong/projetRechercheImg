@@ -7,27 +7,25 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-
-        //affiche une image en noir et blanc = bizarre car aucun filtre
-        /*Image e = ImageLoader.exec("src/broad/0011.png");
-        Viewer2D.exec(e);*/
-
-
         //Indexation
         /*indexation("src/motos","RGB","motos");
         indexation("src/motos","HSV","motos");
         indexation("src/broad","RGB","broad");
-        indexation("src/broad","HSV","broad");*/
+        indexation("src/broad","HSV","broad"); //non
+        */
 
         //scanner
         Scanner sc = new Scanner(System.in);  // Create a Scanner object
@@ -53,6 +51,15 @@ public class Main {
             methode = sc.nextLine().toUpperCase(); // RGB || HSV
         } while(!(methode.equals("RGB") || methode.equals("HSV")));
 
+        File imgFileScan;
+        String imgName; //demande le nom de l'image source à comparer avec le reste
+        do{
+            System.out.println("Entrer un nom d'image");
+            imgName = sc.nextLine();  // Read user input
+            System.out.println("Image : " + imgName);  // Output user input
+            imgFileScan = new File(path+"\\"+imgName);
+        }while(!imgFileScan.exists());
+
         //indexation si demandée
         if(indexer.equals("oui")){
             long tempsDebut = System.currentTimeMillis();
@@ -62,22 +69,12 @@ public class Main {
             System.out.println("Indexation effectuée en: "+ Double.toString(seconds) + " secondes.");
         }
 
-        File imgFileScan;
-        String imgName; //demande le nom de l'image source à comparer avec le reste
-        do{
-            System.out.println("Entrer un nom d'image");
-             imgName = sc.nextLine();  // Read user input
-            System.out.println("Image : " + imgName);  // Output user input
-            imgFileScan = new File(path+"\\"+imgName);
-        }while(!imgFileScan.exists());
+        System.out.println("OK !");
 
-
-        System.out.println("OK wait now!");
-       /* File dir  = new File(path);
-        File[] liste = dir.listFiles();*/
-
+        //créer histo source
         Image imgSource= ImageLoader.exec(path+"\\"+imgName);
         double[][] histoSource = Traitement.traitementHisto(imgSource,methode);
+        //lire le json index
         JSONObject jsonObject = (JSONObject) readJson("src/index"+theme+methode+".json");
         JSONArray jsonArray = (JSONArray) jsonObject.get("images");
 
@@ -107,17 +104,33 @@ public class Main {
             }
         }
         //display the 10 first
+        JFrame frame=new JFrame();
+        frame.setSize(800, 500);
+        // image source
+        Viewer2D.exec(imgSource);
+        //images similaires
+        DefaultListModel listModel = new DefaultListModel();
         System.out.println("BEST 10 :");
             int max = 0;
         for (Map.Entry<Double, String> entry : map.entrySet()) {
             if(max<10) {
                 System.out.println(entry.getKey() + " => " + entry.getValue());
-                Image test= ImageLoader.exec(path+"\\"+entry.getValue());
-                Viewer2D.exec(test);
-
+                /*Image test= ImageLoader.exec(path+"\\"+entry.getValue());
+                Viewer2D.exec(test);*/
+                ImageIcon ii = new ImageIcon(ImageIO.read(new File(path+"\\"+entry.getValue())));
+                listModel.add(max, ii);
             }
             max++;
         }
+        JList lsm=new JList(listModel);
+        lsm.setVisibleRowCount(1);
+        JScrollPane js = new JScrollPane(lsm);
+        frame.add(js);
+
+        //frame.pack();
+        frame.setVisible(true);
+
+
     }
     public static void indexation(String path, String methode,String theme) throws Exception {
         System.out.println("Chargement en cours ...");
