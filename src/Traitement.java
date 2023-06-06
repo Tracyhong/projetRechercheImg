@@ -12,19 +12,30 @@ public class Traitement {
 	 * @return
 	 * @throws IOException
 	 */
-    public static double[][] traitementHisto(Image ImageRead) throws IOException {
+    public static double[][] traitementHisto(Image ImageRead, String methode) throws IOException {
 
         Image ImageMedian = medianFilter(ImageRead,false);
 
         double[][] histo, histo2, histo3;
+		if(methode.equals("HSV")){
+			//histo = HistogramTools.createHistoHSV(ImageMedian, false);
+			histo = HistogramTools.ImageHistoHSV(ImageMedian, false);
+			System.out.println("HSV");
+			return histo;
+		}
+		else{
+			histo = HistogramTools.createHistoRGB(ImageMedian, false);
+			System.out.println("RGB");
+			histo2 = HistogramTools.ReduceHisto(histo,10,false);
 
-        histo = HistogramTools.ImageHisto(ImageMedian, false);
+			histo3 = HistogramTools.PourcentageHisto(histo2,false);
+			return histo3;
+		}/*
+		histo2 = HistogramTools.ReduceHisto(histo,10,false);
 
-        histo2 = HistogramTools.ReduceHisto(histo,10,false);
+		histo3 = HistogramTools.PourcentageHisto(histo2,false);
+		return histo3;*/
 
-        histo3 = HistogramTools.PourcentageHisto(histo2,false);
-
-        return histo3;
     }
 
     /**
@@ -191,9 +202,11 @@ public class Traitement {
 
         Image test= ImageLoader.exec("src\\motos\\000.jpg");
         Image test1= ImageLoader.exec("src\\motos\\243.jpg");
-		double[][] histoTest = traitementHisto(test);
-		double[][] histoTest1 = traitementHisto(test1);
-		similarite(histoTest,histoTest,true); //1.0
-		similarite(histoTest,histoTest1,true); //0.9
+		double[][] histoTest = traitementHisto(test,"HSV");
+		//double[][] histoTest1 = traitementHisto(test1,"RGB");
+		//similarite(histoTest,histoTest,true); //1.0
+		//similarite(histoTest,histoTest1,true); //0.9
 	}
+
+
 }

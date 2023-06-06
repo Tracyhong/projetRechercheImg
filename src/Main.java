@@ -17,18 +17,23 @@ import java.util.*;
 public class Main {
     public static void main(String[] args) throws Exception {
         //scanner to read the theme of images(broad or motos)
-        Scanner myObj = new Scanner(System.in);  // Create a Scanner object
+        Scanner sc = new Scanner(System.in);  // Create a Scanner object
         String theme;
         do{
-            System.out.println("motos or broad");
-            theme = myObj.nextLine();  // Read user input
+            System.out.println("Choissisez le thème d'images : motos ou broad");
+            theme = sc.nextLine();  // Read user input
             System.out.println("Theme : " + theme);  // Output user input
         }while(!(theme.equals("motos") || theme.equals("broad")|| theme.equals("img")));
         String path = "src\\"+theme;
 
+        String methode;
+        do {
+            System.out.print("Veuillez choisir la méthode de comparaison (RGB ou HSV) : ");
+            methode = sc.nextLine().toUpperCase(); // RGB || HSV
+        } while(!(methode.equals("RGB") || methode.equals("HSV")));
         //indexation
         long tempsDebut = System.currentTimeMillis();
-        indexation(path);
+        indexation(path,methode);
         long tempsFin = System.currentTimeMillis();
         double seconds = (tempsFin - tempsDebut) / 1000F;
         System.out.println("Indexation effectuée en: "+ Double.toString(seconds) + " secondes.");
@@ -37,17 +42,20 @@ public class Main {
         String imgName;
         do{
             System.out.println("Entrer un nom d'image");
-             imgName = myObj.nextLine();  // Read user input
+             imgName = sc.nextLine();  // Read user input
             System.out.println("Image : " + imgName);  // Output user input
             imgFileScan = new File(path+"\\"+imgName);
         }while(!imgFileScan.exists());
+
+
+
 
         System.out.println("OK wait now!");
         File dir  = new File(path);
         File[] liste = dir.listFiles();
 
             Image imgSource= ImageLoader.exec(path+"\\"+imgName);
-            double[][] histoSource = Traitement.traitementHisto(imgSource);
+            double[][] histoSource = Traitement.traitementHisto(imgSource,methode);
             JSONObject jsonObject = (JSONObject) readJson("src/index.json");
             JSONArray jsonArray = (JSONArray) jsonObject.get("images");
 
@@ -88,7 +96,7 @@ public class Main {
             max++;
         }
     }
-    public static void indexation(String path) throws Exception {
+    public static void indexation(String path, String methode) throws Exception {
         System.out.println("Chargement en cours ...");
         File dir  = new File(path);
         File[] liste = dir.listFiles();
@@ -108,7 +116,7 @@ public class Main {
                 objImg.put("name", item.getName());
                 JSONArray arrayHisto = new JSONArray();
 
-                double[][] histo = Traitement.traitementHisto(img);
+                double[][] histo = Traitement.traitementHisto(img,methode);
                 //List<String> histoList = new ArrayList<>();
                 for(int i = 0;i<histo.length;i++){
                     List<String> list = new ArrayList<>();
@@ -128,6 +136,7 @@ public class Main {
         obj.put("images",arrayImg);
         writeJson("src/index.json",obj);
         System.out.println("Fin du chargement !");
+
     }
 
     public static Object readJson(String filename) throws IOException, ParseException {

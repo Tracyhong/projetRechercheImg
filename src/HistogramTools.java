@@ -9,7 +9,6 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 
 import java.awt.*;
 import java.io.File;
@@ -78,29 +77,29 @@ public class HistogramTools {
 
     /**
      * Créer l'histogramme d'une image
-     * @param ImageRead
+     * @param img
      * @param show
      * @return
      * @throws IOException
      */
-    public static double[][] ImageHisto (Image ImageRead, boolean show) throws IOException {
+    public static double[][] createHistoRGB(Image img, boolean show) throws IOException {
 
-        double[][] histo = new double[ImageRead.getBDim()][256];
+        double[][] histo = new double[img.getBDim()][256];
         //System.out.println(ImageRead.getBDim());
-        for(int c=0; c < ImageRead.getBDim(); c++){
+        for(int c=0; c < img.getBDim(); c++){
             Arrays.fill(histo[c], 0);
         }
 
-        for(int x=0; x<ImageRead.getXDim();x++){
-            for(int y=0; y<ImageRead.getYDim();y++){
-                for(int c=0; c < ImageRead.getBDim(); c++){
-                    histo[c][ImageRead.getPixelXYBByte(x, y, c)]++;
+        for(int x=0; x<img.getXDim();x++){
+            for(int y=0; y<img.getYDim();y++){
+                for(int c=0; c < img.getBDim(); c++){
+                    histo[c][img.getPixelXYBByte(x, y, c)]++;
                 }
             }
         }
 
         if(show) {
-            for(int c=0; c < ImageRead.getBDim(); c++){
+            for(int c=0; c < img.getBDim(); c++){
                 HistogramTools.plotHistogram(histo[c]);
             }
         }
@@ -158,6 +157,78 @@ public class HistogramTools {
         }
         return histoPourc;
     }
+
+    public static double[][] createHistoHSV(Image img, boolean show) throws IOException {
+        int largeur = img.getXDim();
+        int hauteur = img.getYDim();
+
+        double[][] histo = new double[3][];
+        histo[0] = new double[361];
+        histo[1] = new double[101];
+        histo[2] = new double[101];
+
+        for (int x = 0; x < largeur; x++) {
+            for (int y = 0; y < hauteur; y++) {
+                int r = img.getPixelXYBByte(x, y, 0);
+                int g = img.getPixelXYBByte(x, y, 1);
+                int b = img.getPixelXYBByte(x, y, 2);
+
+                double max = Math.max(Math.max(r, g), b);
+                double min = Math.min(Math.min(r, g), b);
+
+                int v = (int) ((max / 255) * 100);
+                int s = 0;
+                if(max > 0)
+                    s = (int) ((1 - min / max) * 100);
+                int h = (int) (Math.acos((r - (1/2) * g - (1/2) * b) / Math.sqrt(r*r + g*g + b*b + r*g + r*b + g*b)) * 100);
+                if(b > g)
+                    h = 360 - h;
+
+                ++histo[0][h];
+                ++histo[1][s];
+                ++histo[2][v];
+            }
+        }
+        if(show) {
+            for(int c=0; c < img.getBDim(); c++){
+                plotHistogram(histo[c]);
+            }
+        }
+        return histo;
+    }
+
+    public static double[][] ImageHistoHSV (Image ImageRead, boolean show) throws IOException {
+
+        double[][] histo = new double[3][101];
+
+
+        for(int x=0; x<ImageRead.getXDim();x++){
+            for(int y=0; y<ImageRead.getYDim();y++){
+                float[] hsv = null;
+                hsv = Color.RGBtoHSB(ImageRead.getPixelXYBByte(x, y, 0), ImageRead.getPixelXYBByte(x, y, 1), ImageRead.getPixelXYBByte(x, y, 2), hsv);
+
+
+                for(int c=0; c < ImageRead.getBDim(); c++){
+                    //System.out.println( "hsv[+"+c+"+]" + (int) ( hsv[c] * 100 ));
+                    histo[c][ (int) (hsv[c] * 100 )]++;
+                }
+            }
+        }
+
+        if(show) {
+            for(int c=0; c < ImageRead.getBDim(); c++){
+                HistogramTools.plotHistogram(histo[c]);
+            }
+        }
+        return histo;
+    }
+
+
+
+
+
+
+
 
 
     /**
