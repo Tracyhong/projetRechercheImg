@@ -18,8 +18,8 @@ public class Traitement {
 
         double[][] histo, histo2, histo3;
 		if(methode.equals("HSV")){
-			//histo = HistogramTools.createHistoHSV(ImageMedian, false);
-			histo = HistogramTools.ImageHistoHSV(ImageMedian, false);
+			histo = HistogramTools.createHistoHSV(ImageMedian, false);
+			//histo = HistogramTools.ImageHistoHSV(ImageMedian, false);
 			System.out.println("HSV");
 			return histo;
 		}
