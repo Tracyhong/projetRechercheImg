@@ -312,7 +312,7 @@ class ImageTableModel extends AbstractTableModel {
     
     public void removeAllImage() {
     	for(int i = 0; i < images.size(); i++){
-            images.remove(i);
+            images.remove(0);
             
         }
     	fireTableDataChanged(); // Actualiser l'affichage du tableau
